@@ -1,0 +1,93 @@
+require 'rake/clean'
+require 'fileutils'
+
+load '~/.galprop/galpwrapperrc'
+
+def sys(str)
+  puts str
+  system(str)
+end
+
+def select_files(path, postfix = :h)
+  with_source = ->(d) { File.exist?("#{d}/#{File.basename(d)}.#{postfix}") }
+  Dir.glob("#{path}/*").select { |d| with_source.call(d) }
+end
+
+def change_extname(file, postfix)
+  extn = File.extname file
+  name = File.basename file, extn
+  path = File.dirname  file
+  file = "#{path}/#{name}.#{postfix}"
+end
+
+EXTRA_DEPEND = FileList[%w(dm_production interpolator utils)]
+DEPEND_HEAD = FileList[EXTRA_DEPEND.map { |d| select_files(d, :h) }.flatten]
+DEPEND_OBJ = FileList[EXTRA_DEPEND.map { |d| select_files(d, :cc) }.flatten]
+             .map { |s| "#{s}/#{File.basename(s)}.o" }
+DATALIST = %w(anaspec anaspec_pppc).map { |w| "dm_production/#{w}" }
+
+V54_OBJ  = Dir.glob("V54/*").map { |s| change_extname(s, :o) }
+V55_OBJ  = Dir.glob("V55/*").map { |s| change_extname(s, :o) }
+
+OBJS = FileList[%w(GalpropWrapper.o dnde_dm.o store_tree.o)] + 
+       DEPEND_OBJ + 
+       (GALPVERSION.to_s == 'V54' ? V54_OBJ : V55_OBJ)
+
+HEADS = FileList[%w(GalpropWrapper.h dnde_dm.h)] + 
+        DEPEND_HEAD.map { |d| "#{d}/#{File.basename(d)}.h" }
+
+GALP_DEF_FLAG = (["-D GALP_#{GALPVERSION}"] + FLAGS.map { |f| "-D #{f}" }).join(' ')
+CFLAG = %(-std=c++0x -O2 -shared -fPIC #{GALP_DEF_FLAG})
+
+TASKLIST = FileList[:galpwrapper]
+
+CLEAN.include(OBJS)
+CLOBBER.include(TASKLIST)
+load('~/.galprop/galpdepend/galpdepend.rb')
+
+task default: TASKLIST
+
+desc "Compiling the galprop wrapper library"
+multitask galpwrapper: OBJS do |t|
+  sys([CC, CFLAG, '-o', "lib#{t.name}.so", t.sources].join(' '))
+end
+
+def installdata(cls)
+  datadir = "#{cls}/#{File.basename(cls)}_data"
+  targetdir = "#{PREFIX}/lib/#{cls}_data"
+
+  sys("install -d #{targetdir}")
+  sys("install #{datadir}/* #{targetdir}")
+end
+
+def installenumdef
+  targetdir = "#{PREFIX}/include/enumdef"
+
+  sys("install -d #{targetdir}")
+  sys("install */*/enumdef/*def #{targetdir}")
+end
+
+desc "Installing the galprop wrapper"
+task install: :galpwrapper do |t|
+  lib, inc = %w(lib include).map { |path| "#{PREFIX}/#{path}" }
+  [lib, inc].map { |x| sys("install -d #{x}") unless File.exist?(x) }
+
+  DATALIST.each { |c| installdata(c) }
+  sys("install lib#{t.source}.so #{lib}")
+  sys("install #{HEADS.join(' ')} #{inc}")
+
+  installenumdef
+
+# this is a auto generate file to save version and flags
+  GALP_FLAG_AUTO = File.expand_path("#{GALPWRAPPER_DIR}/.galpflag.auto")
+  puts "install GalpWrapper flag file #{GALP_FLAG_AUTO}"
+  File.new(GALP_FLAG_AUTO, 'w').puts "GALP_DEF_FLAG = #{GALP_DEF_FLAG.dump}\nGALPVERSION = #{GALPVERSION.to_s.dump}"
+end
+
+rule '.o' => '.cc' do |t|
+  sys([CC, CFLAG,
+       DLIST.include?(File.basename(t.source)) ? DEBUG : '',
+       %(-D DATDIR=\\"#{PREFIX}/lib/#{File.dirname(t.source)}_data\\"),
+       '-c -o', t.name, DEPEND.inc_to_s,
+       DEPEND_HEAD.map { |x| "-I #{x}" }.join(' '), t.source].join(' '))
+end

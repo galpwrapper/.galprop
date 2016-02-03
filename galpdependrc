@@ -1,0 +1,43 @@
+#**********************************************
+# this file need :
+#     GALPWRAPPER_DIR
+#     USE_GALPWRAPPER
+
+#     GALPVERSION
+#   to be set before
+#**********************************************
+load("#{GALPWRAPPER_DIR}/.galpflag.auto") if USE_GALPWRAPPER
+
+GALPDIRS = { 
+
+  galp: "#{GALPVERSION.to_s == 'V54' ? '/opt/galprop/V54' : '/opt/galprop/V55/galprop'}",
+  galtool: "#{GALPVERSION.to_s == 'V54' ? '/opt/galprop/V54' : '/opt/galprop/V55/galtoolslib'}",
+  source: "#{GALPVERSION.to_s == 'V54' ? '~/galprop_build/V54/galprop-54.1.984/' : '~/galprop_build/V55/galprop_moskalenko_v3/galprop-55.1.2713'}",
+  packages: '/opt',
+}
+
+packages = { 
+
+  'cfitsio' => %w(cfitsio),
+  'CCfits' => %w(CCfits),
+  'CLHEP' => %w(CLHEP),
+  GALPVERSION.to_s == 'V54' ? 'Healpix_2.20a' : 'Healpix_3.20' =>
+    GALPVERSION.to_s == 'V54' ? %w(c_utils cxxsupport fftpack healpix_cxx psht) : %w(c_utils cxxsupport fftpack healpix_cxx sharp),
+  'gsl' => %w(gsl gslcblas)
+}
+packages.merge!({ 'xerces-c-3.1.1' => %w(xerces-c) }) if GALPVERSION.to_s == 'V55'
+
+PACKAGES = packages
+
+galpwrapper = {
+    GALPWRAPPER_DIR => %w(galpwrapper),
+    nil => %w(m gfortran)
+}
+
+extra = {}
+extra.merge!(galpwrapper) if USE_GALPWRAPPER
+
+EXTRA = extra
+
+ADDINC = [`root-config --cflags`.chomp]
+ADDLIB = [`root-config --libs`.chomp]
