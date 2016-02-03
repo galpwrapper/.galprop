@@ -1,12 +1,11 @@
 #**********************************************
-# this file need :
+# this file need one of them:
 #     GALPWRAPPER_DIR
-#     USE_GALPWRAPPER
-
-#     GALPVERSION
+#
+#     GALPVERSION (can be read from .galpflag.auto)
 #   to be set before
 #**********************************************
-load("#{GALPWRAPPER_DIR}/.galpflag.auto") if USE_GALPWRAPPER
+load("#{GALPWRAPPER_DIR}/.galpflag.auto") if defined? GALPWRAPPER_DIR 
 
 GALPDIRS = { 
 
@@ -32,10 +31,10 @@ PACKAGES = packages
 galpwrapper = {
     GALPWRAPPER_DIR => %w(galpwrapper),
     nil => %w(m gfortran)
-}
+} if defined? GALPWRAPPER_DIR
 
 extra = {}
-extra.merge!(galpwrapper) if USE_GALPWRAPPER
+extra.merge!(galpwrapper) if defined? GALPWRAPPER_DIR
 
 EXTRA = extra
 
