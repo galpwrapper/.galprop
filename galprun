@@ -1,0 +1,31 @@
+#!/bin/env ruby
+# encoding: utf-8
+
+NO_RAKEFILE = "No rakefile corresponding to the binary is found, EXIT"
+NO_WRAPPER_DIR = "No GALPWRAPPER_DIR is found in the rakefile, EXIT"
+INFO = <<-eof
+The command could help you to export LD_LIBRARY_PATH automatically when execute
+a binary depend on galpwrapper
+
+      Usage: galprun command args...
+eof
+
+def match_wdir(line)
+  /^\s*GALPWRAPPER_DIR\s*=\s*('|")(?<wdir>.+)('|")\s*$/ =~ line
+  wdir
+end
+
+if ARGV.empty?
+  puts(INFO)
+  exit
+end
+
+raise NO_RAKEFILE unless File.exist?('./rakefile')
+
+rfile = File.new('rakefile')
+rfile.each_line { |l| match_wdir(l) && GALPWRAPPER_DIR = match_wdir(l) }
+raise NO_WRAPPER_DIR unless defined?(GALPWRAPPER_DIR)
+
+bin = ARGV[0]
+cmd = [File.expand_path(bin), *ARGV[1..-1]].join(' ')
+system("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:#{GALPWRAPPER_DIR}/lib; #{cmd}")
