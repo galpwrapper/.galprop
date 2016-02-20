@@ -12,8 +12,10 @@ deps = { "#{GALPDIRS[:galp]}" => %w(galprop),
 }
 deps.merge!(EXTRA)
 
-order = %w(galpwrapper galprop CCfits CLHEP cfitsio)
+order = %w(galprop CCfits CLHEP cfitsio)
+order = %w(galpwrapper) + order if defined? GALPWRAPPER_DIR
 
+GALP_DEF_FLAG = nil unless defined? GALP_DEF_FLAG
 depend = Depend.new(deps, order, GALP_DEF_FLAG)
 depend.addinc(ADDINC)
 depend.addlib(ADDLIB)
