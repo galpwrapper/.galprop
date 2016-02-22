@@ -1,0 +1,32 @@
+require 'rake/clean'
+
+=begin
+  The only thing user need to specific is the direction of galpwrapper,
+  After define the GALPWRAPPER_DIR and load the galpdepend.rb, you could
+  obtain the constant variable DEPEND, which include all the needed information
+  about dependency of galpwrapper
+=end
+GALPWRAPPER_DIR = '/home/linsj/galprop/V55'
+load '~/.galprop/galpdepend/galpdepend.rb'
+
+def sys(str)
+  puts str
+  system(str)
+end
+
+CC = 'g++'
+CFLAG = '-std=c++0x -fopenmp'
+BCOBJ = FileList['test.o']
+CLEAN.include(BCOBJ)
+
+task :default => %w(test)
+
+desc 'generate the program to test the galprop55'
+task :test => BCOBJ do |t|
+  sys("#{CC} #{CFLAG} -o test #{DEPEND.inc_to_s} #{BCOBJ.to_s} #{DEPEND.lib_to_s}")
+end
+CLEAN.include('test')
+
+rule '.o' => '.cc' do |t|
+  sys("#{CC} #{CFLAG} #{DEPEND.flags} -c -fPIC #{DEPEND.inc_to_s} #{t.source} -o #{t.name}")
+end
