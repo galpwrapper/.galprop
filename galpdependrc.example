@@ -21,7 +21,7 @@ packages = {
   'CCfits' => %w(CCfits),
   'CLHEP' => %w(CLHEP),
   GALPVERSION.to_s == 'V54' ? 'Healpix_2.20a' : 'Healpix_3.20' =>
-    GALPVERSION.to_s == 'V54' ? %w(c_utils cxxsupport fftpack healpix_cxx psht) : %w(c_utils cxxsupport fftpack healpix_cxx sharp),
+    GALPVERSION.to_s == 'V54' ? %w(c_utils fftpack healpix_cxx psht cxxsupport) : %w(c_utils fftpack healpix_cxx sharp cxxsupport),
   'gsl' => %w(gsl gslcblas)
 }
 packages.merge!({ 'xerces-c-3.1.1' => %w(xerces-c) }) if GALPVERSION.to_s == 'V55'
@@ -38,5 +38,5 @@ extra.merge!(galpwrapper) if defined? GALPWRAPPER_DIR
 
 EXTRA = extra
 
-ADDINC = [`root-config --cflags`.chomp]
-ADDLIB = [`root-config --libs`.chomp]
+ADDINC = [`root-config --cflags`.chomp, `gsl-config --cflags`.chomp]
+ADDLIB = [`root-config --libs`.chomp, `gsl-config --libs`.chomp]

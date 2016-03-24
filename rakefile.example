@@ -20,11 +20,11 @@ def change_extname(file, postfix)
   file = "#{path}/#{name}.#{postfix}"
 end
 
-EXTRA_DEPEND = FileList[%w(dm_production interpolator utils)]
+EXTRA_DEPEND = FileList[%w(dm_production interpolator utils wmath)]
 DEPEND_HEAD = FileList[EXTRA_DEPEND.map { |d| select_files(d, :h) }.flatten]
 DEPEND_OBJ = FileList[EXTRA_DEPEND.map { |d| select_files(d, :cc) }.flatten]
              .map { |s| "#{s}/#{File.basename(s)}.o" }
-DATALIST = %w(anaspec anaspec_pppc).map { |w| "dm_production/#{w}" }
+DATALIST = %w(anaspec anaspec_pppc anaspec_zhou).map { |w| "dm_production/#{w}" }
 
 V54_OBJ  = Dir.glob("V54/*").map { |s| change_extname(s, :o) }
 V55_OBJ  = Dir.glob("V55/*").map { |s| change_extname(s, :o) }
@@ -42,6 +42,7 @@ CFLAG = %(-std=c++0x -O2 -shared -fPIC #{GALP_DEF_FLAG})
 TASKLIST = FileList[:galpwrapper]
 
 CLEAN.include(OBJS)
+CLEAN.include('libgalpwrapper.so')
 CLOBBER.include(TASKLIST)
 load('~/.galprop/galpdepend/galpdepend.rb')
 
@@ -64,7 +65,8 @@ def installenumdef
   targetdir = "#{PREFIX}/include/enumdef"
 
   sys("install -d #{targetdir}")
-  sys("install */*/enumdef/*def #{targetdir}")
+#  sys("install */*/enumdef/*def #{targetdir}")
+  sys("install enumdef/*def #{targetdir}")
 end
 
 desc "Installing the galprop wrapper"
@@ -79,7 +81,7 @@ task install: :galpwrapper do |t|
   installenumdef
 
 # this is a auto generate file to save version and flags
-  GALP_FLAG_AUTO = File.expand_path("#{GALPWRAPPER_DIR}/.galpflag.auto")
+  GALP_FLAG_AUTO = File.expand_path("#{PREFIX}/.galpflag.auto")
   puts "install GalpWrapper flag file #{GALP_FLAG_AUTO}"
   File.new(GALP_FLAG_AUTO, 'w').puts "GALP_DEF_FLAG = #{GALP_DEF_FLAG.dump}\nGALPVERSION = #{GALPVERSION.to_s.dump}"
 end
@@ -89,5 +91,6 @@ rule '.o' => '.cc' do |t|
        DLIST.include?(File.basename(t.source)) ? DEBUG : '',
        %(-D DATDIR=\\"#{PREFIX}/lib/#{File.dirname(t.source)}_data\\"),
        '-c -o', t.name, DEPEND.inc_to_s,
-       DEPEND_HEAD.map { |x| "-I #{x}" }.join(' '), t.source].join(' '))
+       DEPEND_HEAD.map { |x| "-I #{x}" }.join(' '),
+       %(-I ./), t.source].join(' '))
 end
