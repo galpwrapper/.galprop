@@ -5,6 +5,7 @@ PREFIX = '/opt/galprop/wrapper54'
 
 DLIST = %w()
 DEBUG = '' # the debug option: '', '-D_DEBUG', or '-DDEBUG_TO_FILE'
+VERBOSE = :brief # :detail or :brief
 
 FLAGS = %w(SPLIT_ANTIPROTON_FROM_H_HE)
 =begin

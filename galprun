@@ -28,4 +28,4 @@ raise NO_WRAPPER_DIR unless defined?(GALPWRAPPER_DIR)
 
 bin = ARGV[0]
 cmd = [File.expand_path(bin), *ARGV[1..-1]].join(' ')
-system("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:#{GALPWRAPPER_DIR}/lib; #{cmd}")
+system("export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:#{GALPWRAPPER_DIR}/lib; #{cmd};")
