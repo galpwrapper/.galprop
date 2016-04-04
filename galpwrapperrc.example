@@ -10,4 +10,5 @@ VERBOSE = :brief # :detail or :brief
 FLAGS = %w(SPLIT_ANTIPROTON_FROM_H_HE)
 =begin
   SPLIT_ANTIPROTON_FROM_H_HE: The origin galprop (till version 55) does not allow one to calculate the antiproton from H and that from He separately. We just change some detail of the function gen_secondary_antiproton_source to make it possible. linsj20151101
+     ADD_EPOS_QGS: Add the epos, qgs etc. as the generator for [CR particle + gas->pbar + X] process. This flag depend on SPLIT_ANTIPROTON_FROM_H_HE as I'm lazy; (ONLY V55 adopted) linsj20160401
 =end
