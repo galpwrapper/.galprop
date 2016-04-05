@@ -7,10 +7,11 @@ class Depend
   def initialize(hash, order = nil, flags = nil)
     @dirs, @lib, @inc = [], [], []
     @hash = {}
+    @order = order
     @flags = flags
     @ext_inc_to_s = ''
     @ext_lib_to_s = ''
-    append(hash, order)
+    append(hash, @order)
   end
 
   def append(hash, order = nil)
@@ -19,7 +20,7 @@ class Depend
     @hash.merge!(hash)
     readhash(hash)
 
-    sort(order)
+    sort(order || @order)
     @inc_to_s = @inc.map { |dir| "-I#{dir}" }.join(' ')
   end
 
