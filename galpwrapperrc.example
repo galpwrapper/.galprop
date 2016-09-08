@@ -1,5 +1,6 @@
 CC = 'g++'
 GALPVERSION = :V54
+STATIC = false
 PREFIX = '/opt/galprop/wrapper54'
 # GALPWRAPPER_DIR = '/opt/galprop/wrapper54'
 
