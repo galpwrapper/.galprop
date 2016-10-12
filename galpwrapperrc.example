@@ -10,6 +10,7 @@ VERBOSE = :brief # :detail or :brief
 
 FLAGS = %w(SPLIT_ANTIPROTON_FROM_H_HE FOPENMP)
 =begin
+  LOW_GSL: Compile with low version of gsl
   FOPENMP: Compile with fopenmp
   NO_ROOT: Compile without root support
   SPLIT_ANTIPROTON_FROM_H_HE: The origin galprop (till version 55) does not allow one to calculate the antiproton from H and that from He separately. We just change some detail of the function gen_secondary_antiproton_source to make it possible. linsj20151101
