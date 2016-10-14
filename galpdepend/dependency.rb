@@ -35,9 +35,15 @@ class Depend
   end
 
   def lib_to_s
-    @lib_to_s + ' ' + @ext_lib_to_s
+    [@lib_to_s, @ext_lib_to_s, rpath].join(' ')
   end
 
+  def rpath
+    result = [@lib_to_s, @ext_lib_to_s].join(' ').split(' ')
+    .select { |t| t.start_with?('-L') }.map { |t| ['-rpath', t.sub('-L', '')] }
+
+    result.unshift('-Wl').join(',')
+  end
 
   def addinc(exinc)
     @ext_inc_to_s = @ext_inc_to_s + ' ' + exinc.join(' ')
