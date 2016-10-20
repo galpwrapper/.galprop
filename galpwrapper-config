@@ -1,0 +1,64 @@
+#!/usr/bin/env ruby
+# encoding: utf-8
+
+require 'escort'
+require 'json'
+require 'fileutils'
+
+class Configure < ::Escort::ActionCommand::Base
+  attr_reader :opts
+  INFOFILE = File.expand_path('..', __FILE__) + '/.inforc'
+  PREFIX_UNEXIST = 'You are trying to set an unexist path as prefix, stop'
+
+  def set_prefix
+    @opts = command_options.merge(global_options)
+
+    return unless @opts[:prefix]
+    throw(PREFIX_UNEXIST) unless File.exist?(@opts[:prefix])
+
+    info = readinfo
+    info['prefix'] = @opts[:prefix]
+    file = File.new(INFOFILE, 'w')
+    file.puts JSON.generate(info)
+    file.close
+  end
+
+  def readinfo
+    File.exist?(INFOFILE) ? JSON.parse(File.new(INFOFILE).read) : {}
+  end
+end
+
+Escort::App.create do |app|
+  app.summary 'This routine is used to print the configure information of galpwrapper'
+
+  app.options do |opts|
+    opts.opt :prefix, 'Print or set prefix',
+      short: :none, long: '--prefix', type: :string
+    opts.opt :libs, 'Print the libraries and dependence libraries',
+      short: :none, long: '--libs', type: :bool, default: false
+    opts.opt :cflags, 'Print the compiler flags and header path',
+      short: :none, long: '--cflags', type: :bool, default: false
+    opts.opt :incdir, 'Print the header directory',
+      short: :none, long: '--incdir', type: :bool, default: false
+  end
+
+  app.action do |options, arguments|
+    conf = Configure.new(options, arguments)
+    conf.set_prefix
+
+    GALPWRAPPER_DIR = conf.readinfo['prefix'] || throw('no valid prefix is specified, stop')
+    if options[:global][:options][:prefix]
+      puts GALPWRAPPER_DIR
+      exit
+    end
+    load '~/.galprop/galpdepend/galpdepend.rb'
+
+    results = { libs: DEPEND.lib_to_s,
+                incdir: DEPEND.inc.join(' '),
+                cflags: [DEPEND.flags, DEPEND.inc_to_s].join(' ')
+    }
+
+    puts %w(libs incdir cflags).map(&:to_sym)
+    .map { |k| options[:global][:options][k] ? results[k] : nil }.join(' ')
+  end
+end
